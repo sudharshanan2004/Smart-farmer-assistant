@@ -1,8 +1,10 @@
 const fs = require("fs");
 const path = require("path");
 const supabase = require("../config/supabase");
+const { saveBase64Media } = require("../utils/uploadHelper");
 
 const activityStorePath = path.join(__dirname, "../data/activities.json");
+const harvestStorePath = path.join(__dirname, "../data/harvest.json");
 
 const normalizeActivity = (row) => ({
   id: String(row.id),
@@ -43,8 +45,35 @@ const writeActivityStore = (records) => {
   fs.writeFileSync(activityStorePath, JSON.stringify(records, null, 2));
 };
 
+const bumpCropScoreLocal = (cropId) => {
+  try {
+    if (!fs.existsSync(harvestStorePath)) return;
+    const raw = fs.readFileSync(harvestStorePath, "utf8");
+    const harvests = JSON.parse(raw);
+    if (!Array.isArray(harvests)) return;
+    const updated = harvests.map((h) => {
+      if (String(h.id) === String(cropId)) {
+        const current = typeof h.score === "number" ? h.score : 70;
+        return { ...h, score: Math.min(99, current + 2) };
+      }
+      return h;
+    });
+    fs.writeFileSync(harvestStorePath, JSON.stringify(updated, null, 2));
+  } catch (e) {
+    console.error("Failed to bump local crop score:", e.message);
+  }
+};
+
 const getActivities = async (req, res) => {
   try {
+    if (!supabase) {
+      const all = readActivityStore().map(normalizeActivity);
+      const data = req.query.cropId
+        ? all.filter((activity) => String(activity.cropId) === String(req.query.cropId))
+        : all;
+      return res.json({ success: true, data });
+    }
+
     let query = supabase.from("activities").select("*").order("created_at", { ascending: false });
 
     if (req.query.cropId) {
@@ -75,6 +104,14 @@ const getActivityById = async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
       return res.status(400).json({ success: false, error: "Invalid activity id" });
+    }
+
+    if (!supabase) {
+      const fallback = readActivityStore().find((activity) => String(activity.id) === String(id));
+      if (!fallback) {
+        return res.status(404).json({ success: false, error: "Activity not found" });
+      }
+      return res.json({ success: true, data: normalizeActivity(fallback) });
     }
 
     const { data, error } = await supabase.from("activities").select("*").eq("id", id).single();
@@ -109,9 +146,35 @@ const createActivity = async (req, res) => {
       ai_enhanced: Boolean(req.body.aiEnhanced),
       ai_summary: req.body.aiSummary || null,
       confidence: typeof req.body.confidence === "number" ? req.body.confidence : null,
-      photo: req.body.photo || null,
-      audio: req.body.audio || null,
+      photo: req.body.photo ? saveBase64Media(req.body.photo, "activity") : null,
+      audio: req.body.audio ? saveBase64Media(req.body.audio, "audio") : null,
     };
+
+    if (!supabase) {
+      const activityRecord = {
+        id: Date.now(),
+        crop_id: payload.crop_id,
+        kind: payload.kind,
+        title: payload.title,
+        note: payload.note,
+        date: payload.date,
+        media: payload.media,
+        ai_enhanced: payload.ai_enhanced,
+        ai_summary: payload.ai_summary,
+        confidence: payload.confidence,
+        photo: payload.photo,
+        audio: payload.audio,
+        created_at: new Date().toISOString(),
+      };
+      const nextRecords = [activityRecord, ...readActivityStore()];
+      writeActivityStore(nextRecords);
+
+      if (payload.crop_id) {
+        bumpCropScoreLocal(payload.crop_id);
+      }
+
+      return res.status(201).json({ success: true, data: normalizeActivity(activityRecord) });
+    }
 
     const { data, error } = await supabase.from("activities").insert([payload]).select("*");
 
@@ -170,8 +233,6 @@ const createActivity = async (req, res) => {
   }
 };
 
-// Only apply fields the client actually sent, so a partial update (e.g. just a
-// note) never wipes the activity's crop link, kind or title.
 const buildUpdatePayload = (body) => {
   const payload = {};
   if (body.crop_id !== undefined || body.cropId !== undefined) {
@@ -187,8 +248,12 @@ const buildUpdatePayload = (body) => {
   if (body.confidence !== undefined) {
     payload.confidence = typeof body.confidence === "number" ? body.confidence : null;
   }
-  if (body.photo !== undefined) payload.photo = body.photo || null;
-  if (body.audio !== undefined) payload.audio = body.audio || null;
+  if (body.photo !== undefined) {
+    payload.photo = body.photo ? saveBase64Media(body.photo, "activity") : null;
+  }
+  if (body.audio !== undefined) {
+    payload.audio = body.audio ? saveBase64Media(body.audio, "audio") : null;
+  }
   return payload;
 };
 
@@ -201,6 +266,19 @@ const updateActivity = async (req, res) => {
 
     const payload = buildUpdatePayload(req.body || {});
 
+    if (!supabase) {
+      const existing = readActivityStore();
+      const target = existing.find((a) => String(a.id) === String(id));
+      if (!target) {
+        return res.status(404).json({ success: false, error: `Activity #${id} not found` });
+      }
+      const nextRecords = existing.map((a) =>
+        String(a.id) === String(id) ? { ...a, ...payload, id: a.id } : a
+      );
+      writeActivityStore(nextRecords);
+      return res.json({ success: true, data: [normalizeActivity({ ...target, ...payload })] });
+    }
+
     const { data, error } = await supabase.from("activities").update(payload).eq("id", id).select("*");
 
     if (error) {
@@ -209,25 +287,18 @@ const updateActivity = async (req, res) => {
       }
 
       const existing = readActivityStore();
-      const target = existing.find((activity) => String(activity.id) === String(id));
+      const target = existing.find((a) => String(a.id) === String(id));
       if (!target) {
-        return res.status(404).json({ success: false, error: "Activity not found" });
+        return res.status(404).json({ success: false, error: `Activity #${id} not found` });
       }
-      const nextRecords = existing.map((activity) =>
-        String(activity.id) === String(id)
-          ? { ...activity, ...payload, id: activity.id, created_at: activity.created_at || new Date().toISOString() }
-          : activity,
+      const nextRecords = existing.map((a) =>
+        String(a.id) === String(id) ? { ...a, ...payload, id: a.id } : a
       );
       writeActivityStore(nextRecords);
-      return res.json({ success: true, data: normalizeActivity({ ...target, ...payload }) });
+      return res.json({ success: true, data: [normalizeActivity({ ...target, ...payload })] });
     }
 
-    const updated = Array.isArray(data) && data.length > 0 ? data[0] : null;
-    if (!updated) {
-      return res.status(404).json({ success: false, error: "Activity not found" });
-    }
-
-    res.json({ success: true, data: normalizeActivity(updated) });
+    res.json({ success: true, data: (data || []).map(normalizeActivity) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -240,16 +311,17 @@ const deleteActivity = async (req, res) => {
       return res.status(400).json({ success: false, error: "Invalid activity id" });
     }
 
+    if (!supabase) {
+      const existing = readActivityStore();
+      writeActivityStore(existing.filter((a) => String(a.id) !== String(id)));
+      return res.json({ success: true, message: "Activity deleted" });
+    }
+
     const { error } = await supabase.from("activities").delete().eq("id", id);
 
     if (error) {
-      if (!isTableMissingError(error)) {
-        return res.status(500).json({ success: false, error: error.message });
-      }
-
       const existing = readActivityStore();
-      const nextRecords = existing.filter((activity) => String(activity.id) !== String(id));
-      writeActivityStore(nextRecords);
+      writeActivityStore(existing.filter((a) => String(a.id) !== String(id)));
       return res.json({ success: true, message: "Activity deleted" });
     }
 

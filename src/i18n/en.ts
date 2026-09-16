@@ -91,7 +91,7 @@ export const en = {
   "crop.farmSizePlaceholder": "2.5 acres",
   "crop.photo": "Crop photo (optional)",
   "crop.photoHelp":
-    "Add a photo of your crop. If you skip this, HarvestID automatically picks a matching crop image from the crop name.",
+    "Add a photo of your crop. If you skip this, Smart Farmer Assistant automatically picks a matching crop image from the crop name.",
   "crop.photoAttached": "Custom crop photo attached",
   "crop.uploadPhoto": "Upload a crop photo",
   "crop.photoHint": "JPG or PNG, up to 8 MB — resized automatically",
@@ -244,8 +244,8 @@ export const en = {
 
   // --- Passport page ---
   "passport.notFound": "Passport not found",
-  "passport.notFoundDesc": "This QR code doesn't match any crop in HarvestID.",
-  "passport.goToApp": "Go to HarvestID",
+  "passport.notFoundDesc": "This QR code doesn't match any crop in Smart Farmer Assistant.",
+  "passport.goToApp": "Go to Smart Farmer Assistant",
   "passport.badge": "Digital Crop Passport",
   "passport.generateError": "Could not generate passport",
   "passport.generateErrorDesc": "Please try again shortly.",
@@ -279,7 +279,7 @@ export const en = {
     "This {variety} was grown at {farm} in {location} on {area}. The farmer documented {count} verified field activities from planting on {planted} through the current {stage} stage, supported by photo and voice evidence. No synthetic chemical applications were recorded.",
   "passport.cultivationTimeline": "Cultivation timeline",
   "passport.timelineDesc": "Read-only record of every documented field activity.",
-  "passport.footer": "Verified with HarvestID · Every harvest has an identity",
+  "passport.footer": "Verified with Smart Farmer Assistant · Every harvest has an identity",
   "passport.readyTitle": "Harvest Passport Ready!",
   "passport.readyDesc": "{name} now has a verifiable digital identity buyers can scan.",
   "passport.downloadPdf": "Download PDF",
@@ -312,11 +312,11 @@ export const en = {
     "Choose the language for the whole app. Your own data is never translated.",
 
   // --- QR scanner ---
-  "qr.title": "Scan HarvestID QR",
+  "qr.title": "Scan Passport QR",
   "qr.desc": "Point your camera at a passport QR code to open the linked crop.",
   "qr.cameraNotStarted": "Camera not started yet.",
   "qr.starting": "Starting camera…",
-  "qr.ready": "Point your camera at a HarvestID passport QR code.",
+  "qr.ready": "Point your camera at a passport QR code.",
   "qr.permissionDenied":
     "Camera permission was denied. Allow camera access for this site and try again.",
   "qr.noCamera": "No camera was found on this device.",
@@ -324,7 +324,7 @@ export const en = {
   "qr.close": "Close",
   "qr.tryAgain": "Try again",
   "qr.notRecognised": "QR code not recognised",
-  "qr.notRecognisedDesc": "This doesn't look like a HarvestID passport code.",
+  "qr.notRecognisedDesc": "This doesn't look like a valid passport code.",
   "qr.codeAria": "QR code for passport {url}",
 
   // --- Crop image ---
@@ -345,7 +345,7 @@ export const en = {
   "errorBoundary.desc": "Something went wrong on our end. You can try refreshing or head back home.",
 
   // --- AI Farm Assistant ---
-  "assistant.title": "Farm Assistant",
+  "assistant.title": "Smart Farmer Assistant",
   "assistant.tagline": "Crops, pests, irrigation, weather — ask in your language",
   "assistant.placeholder": "Type your question…",
   "assistant.send": "Send",
@@ -358,7 +358,7 @@ export const en = {
   "assistant.notConfigured":
     "The AI assistant is not set up yet. Add the Gemini API key in Render settings to enable it.",
   "assistant.greeting":
-    "Hello! I'm your HarvestID farm assistant. Ask me about crop cultivation, diseases, pests, irrigation, fertilizers, soil, weather or sowing — in your own language.",
+    "Hello! I'm your Smart Farmer Assistant. Ask me about crop cultivation, diseases, pests, irrigation, fertilizers, soil, weather or sowing — in your own language.",
   "assistant.commandOpen": "Opening {page}",
   "assistant.commandTryAgain": "I didn't catch that. Please try speaking again.",
   "assistant.open": "Open assistant",

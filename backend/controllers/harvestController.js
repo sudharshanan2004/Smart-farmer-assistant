@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const supabase = require("../config/supabase");
+const { saveBase64Media } = require("../utils/uploadHelper");
 
 const harvestStorePath = path.join(__dirname, "../data/harvest.json");
 
@@ -40,6 +41,11 @@ const writeHarvestStore = (records) => {
 
 const getHarvests = async (req, res) => {
   try {
+    if (!supabase) {
+      const records = readHarvestStore().map(normalizeCrop);
+      return res.json({ success: true, data: records });
+    }
+
     const { data, error } = await supabase.from("harvest").select("*").order("created_at", { ascending: false });
 
     if (error) {
@@ -58,6 +64,14 @@ const getHarvestById = async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
       return res.status(400).json({ success: false, error: "Invalid harvest id" });
+    }
+
+    if (!supabase) {
+      const fallback = readHarvestStore().find((row) => String(row.id) === String(id));
+      if (!fallback) {
+        return res.status(404).json({ success: false, error: `Crop #${id} not found` });
+      }
+      return res.json({ success: true, data: normalizeCrop(fallback) });
     }
 
     const { data, error } = await supabase.from("harvest").select("*").eq("id", id).single();
@@ -89,6 +103,8 @@ const createHarvest = async (req, res) => {
       }).filter(([, value]) => value !== undefined && value !== null),
     );
 
+    const savedImage = req.body.image ? saveBase64Media(req.body.image, "crop") : null;
+
     const extraPayload = Object.fromEntries(
       Object.entries({
         variety: req.body.variety || null,
@@ -98,14 +114,28 @@ const createHarvest = async (req, res) => {
         area: req.body.area || null,
         score: typeof req.body.score === "number" ? req.body.score : 70,
         passport: typeof req.body.passport === "boolean" ? req.body.passport : false,
-        image: req.body.image || null,
+        image: savedImage,
         note: req.body.note || "",
       }).filter(([, value]) => value !== undefined && value !== null),
     );
 
-    // Try the full payload first (all columns the app uses). If the Supabase
-    // table is missing some columns, retry with just the base columns so an
-    // un-migrated table still records the crop.
+    if (!supabase) {
+      const fallbackRecord = {
+        id: Date.now(),
+        created_at: new Date().toISOString(),
+        ...basePayload,
+        ...extraPayload,
+      };
+      const nextRecords = [fallbackRecord, ...readHarvestStore()];
+      writeHarvestStore(nextRecords);
+      return res.status(201).json({
+        success: true,
+        message: "Harvest record created successfully",
+        data: [normalizeCrop(fallbackRecord)],
+      });
+    }
+
+    // If Supabase is configured
     const { data, error } = await supabase.from("harvest").insert([{ ...basePayload, ...extraPayload }]).select("*");
 
     if (error) {
@@ -157,17 +187,32 @@ const updateHarvest = async (req, res) => {
         area: req.body.area || undefined,
         score: typeof req.body.score === "number" ? req.body.score : undefined,
         passport: typeof req.body.passport === "boolean" ? req.body.passport : undefined,
-        image: req.body.image || undefined,
+        image:
+          req.body.image !== undefined
+            ? req.body.image
+              ? saveBase64Media(req.body.image, "crop")
+              : null
+            : undefined,
         note: req.body.note || undefined,
       }).filter(([, value]) => value !== undefined && value !== null),
     );
 
+    if (!supabase) {
+      const existing = readHarvestStore();
+      const target = existing.find((row) => String(row.id) === String(id));
+      if (!target) {
+        return res.status(404).json({ success: false, error: `Crop #${id} not found` });
+      }
+      const nextRecords = existing.map((row) =>
+        String(row.id) === String(id) ? { ...row, ...payload, id: row.id, created_at: row.created_at || new Date().toISOString() } : row,
+      );
+      writeHarvestStore(nextRecords);
+      return res.json({ success: true, data: [normalizeCrop({ ...target, ...payload })] });
+    }
+
     const { data, error } = await supabase.from("harvest").update(payload).eq("id", id).select("*");
 
     if (error) {
-      // Supabase failed — fall back to the local store, but only if the row
-      // actually exists there. Never report success for an update that did not
-      // persist anywhere.
       const existing = readHarvestStore();
       const target = existing.find((row) => String(row.id) === String(id));
       if (target) {
@@ -180,7 +225,7 @@ const updateHarvest = async (req, res) => {
 
       return res.status(500).json({
         success: false,
-        error: `Crop #${id} could not be updated: ${error.message}. The Supabase harvest table may be missing columns — run backend/schema.sql.`,
+        error: `Crop #${id} could not be updated: ${error.message}.`,
       });
     }
 
@@ -200,6 +245,12 @@ const deleteHarvest = async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
       return res.status(400).json({ success: false, error: "Invalid harvest id" });
+    }
+
+    if (!supabase) {
+      const existing = readHarvestStore();
+      writeHarvestStore(existing.filter((row) => String(row.id) !== String(id)));
+      return res.json({ success: true, message: "Harvest deleted" });
     }
 
     const { error } = await supabase.from("harvest").delete().eq("id", id);

@@ -20,6 +20,13 @@ dist-ssr
 .env
 .env.*
 !.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Local uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
 
 # TypeScript incremental build info
 *.tsbuildinfo

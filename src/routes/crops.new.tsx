@@ -13,12 +13,12 @@ import { useI18n } from "@/i18n";
 export const Route = createFileRoute("/crops/new")({
   head: () => ({
     meta: [
-      { title: "Register a Crop — HarvestID" },
+      { title: "Register a Crop — Smart Farmer Assistant" },
       {
         name: "description",
         content: "Register a new crop in under two minutes and start its digital passport.",
       },
-      { property: "og:title", content: "Register a Crop — HarvestID" },
+      { property: "og:title", content: "Register a Crop — Smart Farmer Assistant" },
       { property: "og:description", content: "Give your next harvest a digital identity." },
     ],
   }),

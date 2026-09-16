@@ -148,11 +148,19 @@ function normalizeCrop(row: CropApiRow): Crop {
   // re-resolved from the crop name so stored legacy/fallback images can never
   // show a misleading photo of a different crop.
   const storedImage = typeof row.image === "string" ? row.image : "";
+  const resolvedStoredImage = storedImage.startsWith("/uploads/")
+    ? `${API_BASE_URL}${storedImage}`
+    : storedImage;
   const image = resolveCropImage(
     name,
     String(row.variety || ""),
     String(row.category || ""),
-    storedImage.startsWith("data:") ? storedImage : undefined,
+    resolvedStoredImage.startsWith("data:") ||
+      resolvedStoredImage.startsWith("http://") ||
+      resolvedStoredImage.startsWith("https://") ||
+      resolvedStoredImage.startsWith("/uploads/")
+      ? resolvedStoredImage
+      : undefined,
   );
 
   return {
@@ -177,8 +185,10 @@ function normalizeCrop(row: CropApiRow): Crop {
 function normalizeActivity(row: ActivityApiRow, fallbackTitle = "Field activity"): Activity {
   const aiSummary = typeof row.ai_summary === "string" ? row.ai_summary : undefined;
   const confidence = typeof row.confidence === "number" ? row.confidence : undefined;
-  const photo = typeof row.photo === "string" ? row.photo : undefined;
-  const audio = typeof row.audio === "string" ? row.audio : undefined;
+  const rawPhoto = typeof row.photo === "string" ? row.photo : undefined;
+  const photo = rawPhoto?.startsWith("/uploads/") ? `${API_BASE_URL}${rawPhoto}` : rawPhoto;
+  const rawAudio = typeof row.audio === "string" ? row.audio : undefined;
+  const audio = rawAudio?.startsWith("/uploads/") ? `${API_BASE_URL}${rawAudio}` : rawAudio;
 
   return {
     id: String(row.id ?? ""),

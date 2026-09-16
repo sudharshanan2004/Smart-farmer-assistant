@@ -41,12 +41,15 @@ function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link
       to="/"
-      aria-label="HarvestID"
+      aria-label="Smart Farmer Assistant"
       className="flex min-w-0 items-center gap-2.5"
     >
       <HarvestIDLogo variant="full" size={compact ? 34 : 40} />
       {!compact ? (
         <span className="hidden min-w-0 lg:block">
+          <span className="block truncate text-sm font-semibold tracking-tight text-foreground">
+            Smart Farmer Assistant
+          </span>
           <span className="block truncate text-[11px] text-muted-foreground">
             {t("brand.tagline")}
           </span>

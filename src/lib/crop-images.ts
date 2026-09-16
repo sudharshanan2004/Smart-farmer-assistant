@@ -645,7 +645,13 @@ export function resolveCropImage(
   category = "",
   existingImage?: string,
 ): string {
-  if (typeof existingImage === "string" && existingImage.startsWith("data:")) {
+  if (
+    typeof existingImage === "string" &&
+    (existingImage.startsWith("data:") ||
+      existingImage.startsWith("http://") ||
+      existingImage.startsWith("https://") ||
+      existingImage.startsWith("/uploads/"))
+  ) {
     return existingImage;
   }
   const key = resolveCropKey(name, variety);
@@ -654,7 +660,13 @@ export function resolveCropImage(
 
 /** True when the stored image is a farmer upload rather than a catalog URL. */
 export function isCustomCropImage(value?: string): boolean {
-  return typeof value === "string" && value.startsWith("data:");
+  return (
+    typeof value === "string" &&
+    (value.startsWith("data:") ||
+      value.startsWith("http://") ||
+      value.startsWith("https://") ||
+      value.startsWith("/uploads/"))
+  );
 }
 
 /**

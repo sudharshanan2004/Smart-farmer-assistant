@@ -1,12 +1,10 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Reusable HarvestID brand logo. Renders the single official asset
- * (public/logo/harvestID logo.jpeg) everywhere — one source of truth,
- * no duplicate or derived logos. The official mark is square, so the
- * width/height sizing preserves its exact proportions.
+ * Reusable Smart Farmer Assistant brand logo.
+ * Renders the official uploaded asset (public/logo/app-logo.png) everywhere.
  */
-export function HarvestIDLogo({
+export function AppLogo({
   variant = "icon",
   size = 36,
   decorative = false,
@@ -15,7 +13,7 @@ export function HarvestIDLogo({
 }: {
   /** "icon" renders the compact mark; "full" is the same official logo sized up for header/sidebar use. */
   variant?: "icon" | "full";
-  /** Size of the logo in px (the official asset is square, so aspect ratio is preserved). */
+  /** Size of the logo in px */
   size?: number;
   /** True when this instance is a decorative duplicate (hidden from screen readers). */
   decorative?: boolean;
@@ -23,16 +21,19 @@ export function HarvestIDLogo({
   imgClassName?: string;
 }) {
   return (
-    <span className={cn("inline-flex shrink-0 items-center", className)}>
+    <span className={cn("inline-flex shrink-0 items-center overflow-hidden rounded-xl", className)}>
       <img
-        src="/logo/harvestID logo.jpeg"
-        alt={decorative ? "" : "HarvestID logo"}
+        src="/logo/app-logo.png"
+        alt={decorative ? "" : "Smart Farmer Assistant logo"}
         aria-hidden={decorative || undefined}
         width={size}
         height={size}
         draggable={false}
-        className={cn("shrink-0 object-contain", imgClassName)}
+        className={cn("shrink-0 rounded-xl object-cover", imgClassName)}
       />
     </span>
   );
 }
+
+// Alias to maintain compatibility with existing imports
+export const HarvestIDLogo = AppLogo;

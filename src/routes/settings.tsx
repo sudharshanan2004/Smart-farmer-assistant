@@ -22,13 +22,13 @@ import { getAutoSpeak, setAutoSpeak, subscribeAutoSpeak } from "@/lib/auto-speak
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Profile & Settings — HarvestID" },
+      { title: "Profile & Settings — Smart Farmer Assistant" },
       {
         name: "description",
         content: "Manage your farmer profile, notifications and passport sharing preferences.",
       },
-      { property: "og:title", content: "Profile & Settings — HarvestID" },
-      { property: "og:description", content: "Your HarvestID account preferences." },
+      { property: "og:title", content: "Profile & Settings — Smart Farmer Assistant" },
+      { property: "og:description", content: "Your Smart Farmer Assistant account preferences." },
     ],
   }),
   component: SettingsPage,

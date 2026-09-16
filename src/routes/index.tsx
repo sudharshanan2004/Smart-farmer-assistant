@@ -35,13 +35,13 @@ function greetingKeyForHour(hour: number): TranslationKey {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Farmer Dashboard — HarvestID" },
+      { title: "Farmer Dashboard — Smart Farmer Assistant" },
       {
         name: "description",
         content:
           "Track crops, record field activities and generate AI-powered digital crop passports from one dashboard.",
       },
-      { property: "og:title", content: "Farmer Dashboard — HarvestID" },
+      { property: "og:title", content: "Farmer Dashboard — Smart Farmer Assistant" },
       {
         property: "og:description",
         content: "AI-powered crop traceability for farmers and buyers.",

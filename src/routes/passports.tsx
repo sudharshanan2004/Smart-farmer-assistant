@@ -11,12 +11,12 @@ import { localizeCropName } from "@/lib/crop-l10n";
 export const Route = createFileRoute("/passports")({
   head: () => ({
     meta: [
-      { title: "Crop Passports — HarvestID" },
+      { title: "Crop Passports — Smart Farmer Assistant" },
       {
         name: "description",
         content: "Issue and share QR-verified digital crop passports with your buyers.",
       },
-      { property: "og:title", content: "Crop Passports — HarvestID" },
+      { property: "og:title", content: "Crop Passports — Smart Farmer Assistant" },
       { property: "og:description", content: "One click turns your records into buyer-ready proof." },
     ],
   }),

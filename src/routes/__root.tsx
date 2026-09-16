@@ -79,13 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "HarvestID — Digital Crop Passports" },
+      { title: "Smart Farmer Assistant — Digital Crop Passports" },
       {
         name: "description",
         content:
-          "HarvestID gives every harvest a verifiable digital identity with AI-organised farm records.",
+          "Smart Farmer Assistant gives every harvest a verifiable digital identity with AI-organised farm records.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:title", content: "Smart Farmer Assistant — Digital Crop Passports" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -96,8 +97,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap",
       },
-      { rel: "icon", href: "/logo/harvestID logo.jpeg", type: "image/jpeg" },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/logo/app-logo.png", type: "image/png" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/logo/app-logo.png" },
     ],
   }),
   shellComponent: RootShell,

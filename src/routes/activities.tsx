@@ -9,12 +9,12 @@ import { localizeCropName } from "@/lib/crop-l10n";
 export const Route = createFileRoute("/activities")({
   head: () => ({
     meta: [
-      { title: "Field Activities — HarvestID" },
+      { title: "Field Activities — Smart Farmer Assistant" },
       {
         name: "description",
         content: "Every documented field activity across your farm, organised by AI.",
       },
-      { property: "og:title", content: "Field Activities — HarvestID" },
+      { property: "og:title", content: "Field Activities — Smart Farmer Assistant" },
       { property: "og:description", content: "A single feed of all your farm records." },
     ],
   }),
